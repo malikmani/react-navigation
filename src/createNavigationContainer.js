@@ -95,6 +95,7 @@ export default function createNavigationContainer(Component) {
           this._isStateful() && !props.persistenceKey
             ? Component.router.getStateForAction(this._initialAction)
             : null,
+            subscription: null,
       };
     }
 
@@ -200,7 +201,9 @@ export default function createNavigationContainer(Component) {
         }
       }
       _statefulContainerCount++;
-      Linking.addEventListener('url', this._handleOpenURL);
+      // Linking.addEventListener('url', this._handleOpenURL);
+      const subscription = Linking.addEventListener('url', this._handleOpenURL);
+      this.setState({ subscription });
 
       // Pull out anything that can impact state
       const { persistenceKey, uriPrefix, enableURLHandling } = this.props;
@@ -293,7 +296,10 @@ export default function createNavigationContainer(Component) {
 
     componentWillUnmount() {
       this._isMounted = false;
-      Linking.removeEventListener('url', this._handleOpenURL);
+      // Linking.removeEventListener('url', this._handleOpenURL);
+      if (this.state.subscription) {
+        this.state.subscription.remove();
+      }
       this.subs && this.subs.remove();
 
       if (this._isStateful()) {
